@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciador de Tarefas</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+  <div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-2xl font-bold">Gerenciador de Tarefas - <span id="userName">...</span></h1>
+      <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Sair</button>
+    </div>
+
+    <!-- Lists Section -->
+    <div class="mb-8">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold">Minhas Listas</h2>
+        <button onclick="showAddListModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+          Nova Lista
+        </button>
+      </div>
+      <div id="listContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Add/Edit List Modal -->
+    <div id="listModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+      <div class="bg-white p-6 rounded-lg w-96">
+        <h3 id="listModalTitle" class="text-xl font-semibold mb-4">Nova Lista</h3>
+        <input type="text" id="listTitle" placeholder="Título da Lista" class="w-full p-2 border rounded mb-4">
+        <div class="flex justify-end gap-2">
+          <button onclick="closeListModal()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+            Cancelar
+          </button>
+          <button onclick="saveList()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            Salvar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add/Edit Task Modal -->
+    <div id="taskModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+      <div class="bg-white p-6 rounded-lg w-96">
+        <h3 id="taskModalTitle" class="text-xl font-semibold mb-4">Nova Tarefa</h3>
+        <input type="text" id="taskTitle" placeholder="Título da Tarefa" class="w-full p-2 border rounded mb-2">
+        <textarea id="taskDescription" placeholder="Descrição" class="w-full p-2 border rounded mb-4 h-24"></textarea>
+        <div class="flex justify-end gap-2">
+          <button onclick="closeTaskModal()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+            Cancelar
+          </button>
+          <button onclick="saveTask()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            Salvar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add/Edit Subtask Modal -->
+    <div id="subtaskModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+      <div class="bg-white p-6 rounded-lg w-96">
+        <h3 id="subtaskModalTitle" class="text-xl font-semibold mb-4">Nova Subtarefa</h3>
+        <input type="text" id="subtaskTitle" placeholder="Título da Subtarefa" class="w-full p-2 border rounded mb-2">
+        <textarea id="subtaskDescription" placeholder="Descrição"
+          class="w-full p-2 border rounded mb-4 h-24"></textarea>
+        <div class="flex justify-end gap-2">
+          <button onclick="closeSubtaskModal()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+            Cancelar
+          </button>
+          <button onclick="saveSubtask()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            Salvar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add/Edit Checklist Item Modal -->
+    <div id="checklistModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+      <div class="bg-white p-6 rounded-lg w-96">
+        <h3 id="checklistModalTitle" class="text-xl font-semibold mb-4">Novo Item</h3>
+        <input type="text" id="checklistTitle" placeholder="Título do Item" class="w-full p-2 border rounded mb-4">
+        <div class="flex justify-end gap-2">
+          <button onclick="closeChecklistModal()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+            Cancelar
+          </button>
+          <button onclick="saveChecklistItem()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            Salvar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="list.js"></script>
+  <script src="task.js"></script>
+  <script src="subtask.js"></script>
+  <script src="checklist.js"></script>
+
+
+
+  <script>
+    // Supabase initialization
+    const { createClient } = supabase;
+    // Supabase initialization
+    const SUPABASE_URL = '';
+    const SUPABASE_ANON_KEY = '';
+
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true
+      },
+      headers: {
+        'apikey': SUPABASE_ANON_KEY
+      }
+    });
+
+    // Modified checkAuth function
+    async function checkAuth() {
+      try {
+        const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+
+        if (sessionError) throw sessionError;
+
+        if (!session) {
+          window.location.href = 'login.html';
+          return;
+        }
+
+        const { data, error } = await supabaseClient
+          .from('profiles')
+          .select('name')
+          .eq('id', session.user.id)
+          .single();
+
+        if (error) throw error;
+
+        document.getElementById('userName').textContent = data.name;
+        await loadLists();
+
+      } catch (error) {
+        console.error('Authentication error:', error);
+        window.location.href = 'login.html';
+      }
+    }
+
+    // Global variables for editing
+    let currentListId = null;
+    let currentTaskId = null;
+    let currentSubtaskId = null;
+    let currentChecklistItemId = null;
+
+    // Auth check
+    async function checkAuth() {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('profiles')
+          .select('name')
+          .eq('id', session.user.id)
+          .single();
+
+        if (error) throw error;
+        document.getElementById('userName').textContent = data.name;
+        loadLists();
+      } catch (error) {
+        console.error('Erro ao carregar perfil:', error);
+      }
+    }
+
+    async function logout() {
+      await supabaseClient.auth.signOut();
+      window.location.href = 'login.html';
+    }
+    checkAuth();
+  </script>
+</body>
+
+</html>
