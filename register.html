@@ -6,30 +6,124 @@
     <title>Cadastro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 400px; margin: 20px auto; padding: 20px; }
-        input, button { width: 100%; padding: 8px; margin: 10px 0; }
-        button { background: #4CAF50; color: white; border: none; cursor: pointer; }
-        button:hover { background: #45a049; }
+        :root {
+            --bg-color: #121212;
+            --card-bg-color: #1E1E1E;
+            --text-color: #E0E0E0;
+            --primary-color: #BB86FC;
+            --error-color: #CF6679;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg-color);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        input {
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: none;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        button {
+            padding: 0.75rem;
+            background-color: var(--primary-color);
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #9965f4;
+        }
+
+        p {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .error {
+            color: var(--error-color);
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <h2>Cadastro</h2>
-    <form id="registerForm">
-        <input type="text" id="name" placeholder="Nome" required>
-        <input type="email" id="email" placeholder="Email" required>
-        <input type="password" id="password" placeholder="Senha" required>
-        <button type="submit">Cadastrar</button>
-    </form>
-    <p>Já tem conta? <a href="login.html">Faça login</a></p>
+    <div class="container">
+        <h2>Cadastro</h2>
+        <form id="registerForm">
+            <input type="text" id="name" placeholder="Nome" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Senha" required>
+            <button type="submit">Cadastrar</button>
+        </form>
+        <p>Já tem conta? <a href="login.html">Faça login</a></p>
+        <div id="errorMessage" class="error"></div>
+    </div>
 
     <script>
-        // Inicialização correta do Supabase
         const { createClient } = supabase;
-        const supabaseClient = createClient('https://mbaqflucmarokehqtqjz.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1iYXFmbHVjbWFyb2tlaHF0cWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2MjY4MjIsImV4cCI6MjA1MDIwMjgyMn0.XWGMdgsqlpY0SA5Q-9dW3HgDf0SxTCo5LrQ1BwJxMR4');        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        const supabaseClient = createClient('https://mbaqflucmarokehqtqjz.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1iYXFmbHVjbWFyb2tlaHF0cWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2MjY4MjIsImV4cCI6MjA1MDIwMjgyMn0.XWGMdgsqlpY0SA5Q-9dW3HgDf0SxTCo5LrQ1BwJxMR4');
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
 
             try {
                 const { data, error } = await supabaseClient.auth.signUp({
@@ -46,7 +140,7 @@
                 alert('Cadastro realizado com sucesso! Por favor, faça login.');
                 window.location.href = 'login.html';
             } catch (error) {
-                alert('Erro no cadastro: ' + error.message);
+                errorMessage.textContent = 'Erro no cadastro: ' + error.message;
             }
         });
     </script>
