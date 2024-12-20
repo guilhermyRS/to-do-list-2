@@ -1,3 +1,6 @@
+
+
+
 // Função principal para carregar as listas
 async function loadLists() {
   try {
@@ -100,6 +103,7 @@ function renderSubtasks(task) {
   task.subtasks?.forEach(subtask => {
     const subtaskElement = document.createElement('div');
     subtaskElement.className = 'bg-[#1E1E1E] text-white p-2 rounded mt-2 border';
+    subtaskElement.dataset.subtaskId = subtask.id;
 
     const checklistItems = subtask.checklist_items || [];
     const completedItems = checklistItems.filter(item => item.is_completed).length;
@@ -120,16 +124,22 @@ function renderSubtasks(task) {
       checkboxClass = 'checkbox-yellow';
     }
 
-    const titleClass = percentage === 100 ? 'completed-title' : '';
     const containerClass = percentage === 100 ? 'completed-task' : '';
+    const isMinimized = percentage === 100;
 
     subtaskElement.className += ` ${containerClass}`;
 
     subtaskElement.innerHTML = `
       <div class="flex justify-between items-center">
-        <h5 class="font-medium ${titleClass}">${subtask.title}</h5>
+        <h5 class="font-medium">${subtask.title}</h5>
         <div class="flex gap-2 items-center">
-          <span class="text-sm ${percentageClass}">${percentage.toFixed(0)}%</span>
+          ${percentage === 100 ? 
+            `<span class="text-sm ${percentageClass}">Concluído</span>` :
+            `<span class="text-sm ${percentageClass}">${percentage.toFixed(0)}%</span>`
+          }
+          <button onclick="toggleSubtaskVisibility('${subtask.id}')" class="text-gray-400 hover:text-white">
+            <i class="bi ${isMinimized ? 'bi-chevron-down' : 'bi-chevron-up'} fs-4"></i>
+          </button>
           <button onclick="showAddChecklistModal('${subtask.id}')" class="text-success hover:text-success-dark">
             <i class="bi bi-plus-circle fs-4"></i>
           </button>
@@ -143,14 +153,37 @@ function renderSubtasks(task) {
       </div>
       <p class="text-sm text-gray-300 mt-1">${subtask.description || ''}</p>
       <div class="w-full bg-gray-600 rounded h-2 mt-2">
-        <div class="${progressBarColor} rounded h-2 transition-all duration-300" style="width: ${percentage}%"></div>
+        <div class="${progressBarColor} rounded h-2 transition-all duration-200" style="width: ${percentage}%"></div>
       </div>
-      <div id="checklistContainer-${subtask.id}" class="mt-2" data-checkbox-class="${checkboxClass}"></div>
+      <div id="checklistContainer-${subtask.id}" class="mt-2 ${isMinimized ? 'hidden' : ''}" data-checkbox-class="${checkboxClass}"></div>
     `;
     subtaskContainer.appendChild(subtaskElement);
 
     renderChecklistItems(subtask, checkboxClass);
+
+    // Se a subtarefa já estiver 100% completa, minimiza automaticamente
+    if (percentage === 100) {
+      const checklistContainer = document.getElementById(`checklistContainer-${subtask.id}`);
+      checklistContainer.classList.add('hidden');
+    }
   });
+}
+
+// Função para alternar a visibilidade da subtarefa
+function toggleSubtaskVisibility(subtaskId) {
+  const subtaskElement = document.querySelector(`[data-subtask-id="${subtaskId}"]`);
+  const checklistContainer = document.getElementById(`checklistContainer-${subtaskId}`);
+  const toggleButton = subtaskElement.querySelector('.bi-chevron-up, .bi-chevron-down');
+  
+  if (checklistContainer.classList.contains('hidden')) {
+    checklistContainer.classList.remove('hidden');
+    toggleButton.classList.remove('bi-chevron-down');
+    toggleButton.classList.add('bi-chevron-up');
+  } else {
+    checklistContainer.classList.add('hidden');
+    toggleButton.classList.remove('bi-chevron-up');
+    toggleButton.classList.add('bi-chevron-down');
+  }
 }
 
 function renderChecklistItems(subtask, checkboxClass) {
@@ -224,6 +257,7 @@ async function toggleChecklistItem(id, isCompleted) {
     const percentageSpan = subtaskElement.querySelector('[class*="percentage-text-"]');
     const titleElement = subtaskElement.querySelector('h5');
     const checkboxes = checklistContainer.querySelectorAll('input[type="checkbox"]');
+    const toggleButton = subtaskElement.querySelector('.bi-chevron-up, .bi-chevron-down');
     
     // Remover classes antigas e adicionar novas
     progressBar.className = `${progressBarColor} rounded h-2 transition-all duration-300`;
@@ -232,14 +266,17 @@ async function toggleChecklistItem(id, isCompleted) {
       checkbox.className = `rounded ${checkboxClass}`;
     });
     
-    // Atualizar porcentagem
+    // Atualizar texto da porcentagem
+    percentageSpan.textContent = percentage === 100 ? 'Concluído' : `${percentage.toFixed(0)}%`;
     progressBar.style.width = `${percentage}%`;
-    percentageSpan.textContent = `${percentage.toFixed(0)}%`;
     
-    // Adicionar/remover classe de conclusão
+    // Adicionar/remover classe de conclusão e minimizar automaticamente se 100%
     if (percentage === 100) {
       subtaskElement.classList.add('completed-task');
       titleElement.classList.add('completed-title');
+      checklistContainer.classList.add('hidden');
+      toggleButton.classList.remove('bi-chevron-up');
+      toggleButton.classList.add('bi-chevron-down');
     } else {
       subtaskElement.classList.remove('completed-task');
       titleElement.classList.remove('completed-title');
@@ -257,6 +294,7 @@ async function toggleChecklistItem(id, isCompleted) {
     console.error('Erro ao atualizar item do checklist:', error);
   }
 }
+
 
 
 // Funções para gerenciamento de listas

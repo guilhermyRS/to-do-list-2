@@ -216,10 +216,10 @@
       </div>
     </div>
   </div>
-  <script src="list.js"></script>
-  <script src="task.js"></script>
-  <script src="subtask.js"></script>
-  <script src="checklist.js"></script>
+  <script src="./js/list.js"></script>
+  <script src="./js/task.js"></script>
+  <script src="./js/subtask.js"></script>
+  <script src="./js/checklist.js"></script>
 
 
 
@@ -227,8 +227,8 @@
     // Supabase initialization
     const { createClient } = supabase;
     // Supabase initialization
-    const SUPABASE_URL = '';
-    const SUPABASE_ANON_KEY = '';
+    const SUPABASE_URL = 'https://mbaqflucmarokehqtqjz.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1iYXFmbHVjbWFyb2tlaHF0cWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2MjY4MjIsImV4cCI6MjA1MDIwMjgyMn0.XWGMdgsqlpY0SA5Q-9dW3HgDf0SxTCo5LrQ1BwJxMR4';
 
     const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: {

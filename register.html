@@ -25,7 +25,7 @@
     <script>
         // Inicialização correta do Supabase
         const { createClient } = supabase;
-        const supabaseClient = createClient('', '');        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        const supabaseClient = createClient('https://mbaqflucmarokehqtqjz.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1iYXFmbHVjbWFyb2tlaHF0cWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2MjY4MjIsImV4cCI6MjA1MDIwMjgyMn0.XWGMdgsqlpY0SA5Q-9dW3HgDf0SxTCo5LrQ1BwJxMR4');        document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
